@@ -7,36 +7,55 @@ Created on Wed Jan 30 03:27:16 2019
 import math
 import lab1
 
-class SetDigit:
+class whichTriangle:
     def __init__(self):
-        self.name = "SetDigit.py"
         self.timeout = 2
         
 
     def refFuncWrapper(self):
         return self.refFunc( int(raw_input()), int(raw_input()), int(raw_input()) )
     
-    def refFunc(self, n, k, d):
-        return ((n >= 0) * (n - ((n / 10**k) % 10 * (10**k)) + 10**k * d) - (n < 0) * ((-n) - (((-n) / 10**k) % 10 * (10**k)) + 10**k * d))
-
+    def refFunc(self,a,b,c):
+        if (a >= b + c) or (b >= a + c) or (c >= a + b):
+            return 0        # Side cannot be a triangle
+        elif (a**2 == b**2 + c**2) or (b**2 == a**2 + c**2) or (c**2 == a**2 + b**2):
+            return 1        # Right triangle
+        elif a == b == c:
+            return 3        # Equilateral triangle
+        elif (a**2 > b**2 + c**2) or (b**2 > a**2 + c**2) or (c**2 > a**2 + b**2):
+            if a != b and b != c and c != a:
+                return 4    # Obtuse angled scalene triangle
+            else:
+                return 5    # Obtuse angled isosceles triangle
+        elif (a**2 < b**2 + c**2) or (b**2 < a**2 + c**2) or (c**2 < a**2 + b**2):
+            if a != b and b != c and c != a:
+                return 6    # Acute angled scalene triangle
+            else:
+                return 7    # Acute angled isosceles triangle
     
     def inputFunc(self):
-        x =  lab1.setKthDigit ( int(raw_input()), int(raw_input()), int(raw_input()) )
+        x =  lab1.whichTriangle( int(raw_input()), int(raw_input()), int(raw_input()) )
         return x
     
-class Pop:
+class isFloat:
     def __init__(self):
-        self.name = "Pop.py"
         self.timeout = 2
   
     def refFuncWrapper(self):
-        return self.refFunc( int(raw_input()), float(raw_input()), int(raw_input()) )
+        return self.refFunc( raw_input() )
     
-    def refFunc(self,n, k, t):
-        return int(n*math.e**(k*t))
+    def refFunc(self,inp):
+        if inp == "":
+            return False
+        inp = inp.strip()
+        plusminus = ["+", "-"]
+        if inp[0] in plusminus:
+            inp = inp[1:]
+        inp = inp.replace(".", "", 1)
+        return inp.isdigit()  
     
     def inputFunc(self):
-        x = lab1.populationEstimation( int(raw_input()), float(raw_input()), int(raw_input()) )
+        x = lab1.isFloat( raw_input() )
         return x
          
 def generate(names):
@@ -51,5 +70,5 @@ def generate(names):
     
     
 if __name__ == "__main__":
-    names = ["SetDigit", "Pop"]
+    names = ["whichTriangle", "isFloat"]
     generate(names)

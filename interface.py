@@ -3,56 +3,130 @@ from PIL import Image, ImageTk
 import ttk
 import tkMessageBox as messagebox
 import re
+import CustomNotebook as nt
+
+import pickle
+
+FILENAME = "state.pkl"
+
+
+NBOOKS = []
+NBOOKS2 = []
+
+class Notebook(ttk.Notebook):
+    """A ttk Notebook with close buttons on each tab"""
+
+    __initialized = False
+
+    def __init__(self, initialized, nbooks, stringVar, *args, **kwargs):
+        self.nbooks = nbooks
+        self.stringVar = stringVar
+        if not initialized:
+            self.__initialize_custom_style()
+            self.__inititialized = True
+
+        kwargs["style"] = "CustomNotebook"
+        ttk.Notebook.__init__(self, *args, **kwargs)
+
+        self._active = None
+
+        self.bind("<ButtonPress-1>", self.on_close_press, True)
+        self.bind("<ButtonRelease-1>", self.on_close_release)
+
+    def on_close_press(self, event):
+        """Called when the button is pressed over the close button"""
+
+        element = self.identify(event.x, event.y)
+
+        if "close" in element:
+            index = self.index("@%d,%d" % (event.x, event.y))
+            self.state(['pressed'])
+            self._active = index
+
+    def on_close_release(self, event):
+        """Called when the button is released over the close button"""
+        if not self.instate(['pressed']):
+            return
+
+        element =  self.identify(event.x, event.y)
+        index = self.index("@%d,%d" % (event.x, event.y))
+
+        if "close" in element and self._active == index:
+            self.forget(index)
+            self.event_generate("<<NotebookTabClosed>>")
+        
+        
+
+        self.state(["!pressed"])
+        self._active = None
+
+
+        for i in range(self.index('end')):
+            self.tab(i, text = self.stringVar + " " + str(i))
+        self.nbooks.remove(self.nbooks[index])
+
+
+    def __initialize_custom_style(self):
+        style = ttk.Style()
+        self.images = (
+            PhotoImage("img_close", data='''
+                R0lGODlhCAAIAMIBAAAAADs7O4+Pj9nZ2Ts7Ozs7Ozs7Ozs7OyH+EUNyZWF0ZWQg
+                d2l0aCBHSU1QACH5BAEKAAQALAAAAAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU
+                5kEJADs=
+                '''),
+            PhotoImage("img_closeactive", data='''
+                R0lGODlhCAAIAMIEAAAAAP/SAP/bNNnZ2cbGxsbGxsbGxsbGxiH5BAEKAAQALAAA
+                AAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU5kEJADs=
+                '''),
+            PhotoImage("img_closepressed", data='''
+                R0lGODlhCAAIAMIEAAAAAOUqKv9mZtnZ2Ts7Ozs7Ozs7Ozs7OyH+EUNyZWF0ZWQg
+                d2l0aCBHSU1QACH5BAEKAAQALAAAAAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU
+                5kEJADs=
+            ''')
+        )
+
+        style.element_create("close", "image", "img_close",
+                            ("active", "pressed", "!disabled", "img_closepressed"),
+                            ("active", "!disabled", "img_closeactive"), border=8, sticky='')
+        style.layout("CustomNotebook", [("CustomNotebook.client", {"sticky": "nswe"})])
+        style.layout("CustomNotebook.Tab", [
+            ("CustomNotebook.tab", {
+                "sticky": "nswe", 
+                "children": [
+                    ("CustomNotebook.padding", {
+                        "side": "top", 
+                        "sticky": "nswe",
+                        "children": [
+                            ("CustomNotebook.focus", {
+                                "side": "top", 
+                                "sticky": "nswe",
+                                "children": [
+                                    ("CustomNotebook.label", {"side": "left", "sticky": ''}),
+                                    ("CustomNotebook.close", {"side": "left", "sticky": ''}),
+                                ]
+                        })
+                    ]
+                })
+            ]
+        })
+    ])
+
+
+
 
 
 
 #######MAIN WINDOW INTERFACE#########
 
-class Welcome:
-    def __init__(self):
-        self.root = Tk()
-        self.root.geometry('1000x600')
-        self.root.title("PAG")
-        self.root.resizable(False,False)
-        self.root.configure(background='#888888')
-        self.bg = '#e9e9e9'
-        self.font = ("Helvetica", 12)                            
-        self.main_cnv = Canvas(self.root, bg = "#e9e9e9", width = 1000, height = 600)
-        self.main_cnv.pack()        
-        x = 50
-        self.main_cnv.create_text(500,150, text = "Welcome to PAG!", font = ("Bucket O Blood",x), fill = "#0e969e")                                  
-        self.main_cnv.create_text(500,300, text = "PAG", font = ("Bucket O Blood",x-20), fill = "#0e969e", tag = "pag", activefill = "#4a64e8")
-        self.main_cnv.tag_bind("pag", '<ButtonRelease-1>', lambda e: self.popup(Toplevel(),self.root))                                                              
-        self.root.mainloop()
-        
-
-    #open the fractals window
-    def popup(self,wnd, parent):
-        self.wnd = wnd
-        self.parent = parent
-        self.wnd.geometry('300x100')
-        self.wnd.title("!")
-        label = Label(self.wnd, text = "Please enter the number of questions to proceed.")
-        label.pack()
-        self.box = Spinbox(self.wnd,from_=1, to =30)
-        self.box.pack()
-        ok = Button(self.wnd, text = "Proceed", command = self.proceed )
-        ok.pack()
-        self.wnd.resizable(False,False)
-        
-    def proceed(self):
-        numQ = int(self.box.get())
-        self.wnd.destroy()
-        self.parent.destroy()
-        Main(numQ)
-        
         
 class Main:
-    def __init__(self, numQ):
-        self.numQ = numQ
+    def __init__(self):
+        self.numQ = 1
+        self.restored = False
 
 
         self.root= Tk()
+        self.root.wm_protocol("WM_DELETE_WINDOW", self.save_state)
         self.root.geometry('1000x600')
         self.root.title("PAG")
         self.root.resizable(False,False)
@@ -61,29 +135,85 @@ class Main:
 
         self.bottom_frame = Canvas(self.root)
         self.bottom_frame.pack()
-        self.questions = []
-#        for i in range(numQ):
-#            self.questions.append(None)
-        self.n = ttk.Notebook(self.top_frame)        
+#        self.questions = NBOOKS
+        self.nbooks = NBOOKS
+
+        self.n = Notebook(False, NBOOKS, "Question", self.top_frame)        
         for i in range(self.numQ):                    
             f1 = ttk.Frame(self.n)
-            self.questions.append(MainFrame(self, f1))
             self.n.add(f1, text='Question' + str(i))
+            NBOOKS.append(MainFrame(self, f1))
             
         self.n.pack()
         
-
-        
-#        TopFrame(self, self.top_frame)
-#        MainFrame(self, self.main_frame)
         BottomFrame(self,self.bottom_frame)
-        
+        self.root.after(1, self.restore)
         self.root.mainloop()
+
+    
+    def restore(self):
+        if messagebox.askyesno("Restore", "Do you want to restore the latest saved version?"):
+            try:
+                f = open("state.pkl")
+                state = pickle.load(f)
+                self.nbooks.pop(0)
+                self.n.forget(0)
+                for i in range(len(state)):
+                    f1 = ttk.Frame(self.n)
+                    f2 = MainFrame(self, f1)
+                    
+                    f2.qText.insert(0, state[i]["Question"])
+                    f2.fText.insert(0, state[i]["Function"])
+                    f2.numCasesvar.set(state[i]["NumClasses"])
+                    f2.timeoutVar.set(state[i]["timeout"])
+                    f2.tkvar.set(state[i]["indexName"])
+                    f2.generateClasses(True, state[i]["classes"])
+                        
+                    self.nbooks.append(f2)
+                    self.n.add(f1, text='Question' + str(i)) 
+                    
+                    
+            except:
+                NBOOKS = []
+                f1 = ttk.Frame(self.n)
+                NBOOKS.append(MainFrame(self, f1))
+                self.n.add(f1, text='Question' + str(0))
+                messagebox.showerror("Error", "Unable to load")
+
+
+
  
-#class TopFrame:
-#    def __init__(self,parent,cnv):
-#        self.pageLabel = Label(cnv,text = str(parent.page) + "/" + str(parent.numQ), font = ("Bucket O Blood",18))
-#        self.pageLabel.pack()
+    def save_state(self):
+        state = []
+        if messagebox.askyesno("Save", "Do you want to save current state?"):
+            try:
+                for Q in NBOOKS:
+                    d = dict()
+                    d["Question"] = Q.qText.get()
+                    d["Function"] = Q.fText.get()
+                    d["NumClasses"] = len(Q.classes)
+                    d["timeout"] = Q.timeoutW.get()
+                    d["indexName"] = Q.tkvar.get() 
+                    classes = dict()
+                    for c in Q.classes:
+                        classes["fail"] = c.failText.get()
+                        classes["success"] = c.successText.get()
+                        classes["points"] =  c.pointsW.get()
+                        classes["cases"] =  c.casesW.get('1.0',END)
+                    d["classes"] = classes
+                    state.append(d)
+                f  = open(FILENAME,'wb')
+                pickle.dump(state, f)
+                self.root.destroy()
+            except:
+                messagebox.showerror("Error", "Unable to save")
+                self.root.destroy()
+        else:
+            self.root.destroy()
+                
+        
+        
+        
 
     
 class MainFrame:
@@ -104,47 +234,88 @@ class MainFrame:
         self.fName.grid(row=0,column= 2)  
         self.fText.grid(row=0, column = 3)
         self.numCases = Label(self.stringsFrame, text = "Number of Test Classes: ")
-        self.numCasesW = Spinbox(self.stringsFrame,from_=1, to =20)
+        self.numCasesvar = StringVar(self.parent.root)
+        self.numCasesW = Spinbox(self.stringsFrame,from_=1, to =20, textvariable = self.numCasesvar)
         self.numCasesB = Button(self.stringsFrame, command = self.generateClasses, text = "Generate Classes")
         self.numCases.grid(row=0,column=4)
         self.numCasesW.grid(row=0,column=5)
         self.numCasesB.grid(row=0,column=6)
+        
+        self.timeout = Label(self.stringsFrame, text = "Timeout in seconds: ")
+        self.timeoutVar = StringVar(self.parent.root)
+        self.timeoutW = Spinbox(self.stringsFrame,from_=0.1, to =10, textvariable = self.timeoutVar)
+        self.timeout.grid(row=1,column = 1, sticky = W)
+        self.timeoutW.grid(row=1,column= 2) 
+        
+        
+        self.tkvar = StringVar(self.parent.root)
+#        choices = [ 'Integer Comparison','Float Comparison','String Comparison']
+        self.tkvar.set('Integer Comparison') # set the default option
+        self.index = Label(self.stringsFrame, text = "Comparison Function: ")
+        self.indexW = OptionMenu(self.stringsFrame, self.tkvar, 'Integer Comparison','Float Comparison','String Comparison')        
+        self.index.grid(row=1,column = 3, sticky = W)
+        self.indexW.grid(row=1,column= 4)        
        
 
         self.classFrames = Frame(cnv)
         self.classFrames.pack()
 
 
-    def generateClasses(self):
+    def generateClasses(self, regenerate = False, classes = None):
         
-        for widget in self.classFrames.winfo_children():
-            widget.destroy()      
-        n = ttk.Notebook(self.classFrames)        
+        if self.classes == []:
+            self.n = Notebook(True, self.classes, "Category", self.classFrames)        
+            
+            numClasses = self.numCasesW.get()
+            try:
+                numClasses = int(numClasses)
+            except:
+    #            spinBoxError()
+                return
+            for i in range(numClasses):
+                
+                f1 = ttk.Frame(self.n)
+                f2 = TestClass(f1, i, self)
+                if regenerate:
+                    try:
+                        f2.failText.insert(0, classes["fail"])
+                        f2.successText.insert(0, classes["success"])
+                        f2.pointsVar.set(classes["points"])
+                        f2.casesW.insert('1.0', classes["cases"])
+                    except:
+                        print "none"
+                        f2 = TestClass(f1, i, self)
+                    
+                self.classes.append(f2)
+                self.n.add(f1, text='Category ' + str(i))
+                
+            self.n.pack()
+        else:
+            numClasses = self.numCasesW.get()
+            try:
+                numClasses = int(numClasses)
+            except:
+    #            spinBoxError()
+                return     
+            if numClasses <= len(self.classes):
+                return
+            
+            for i in range(len(self.classes), numClasses):
+                f1 = ttk.Frame(self.n)
+                self.classes.append(TestClass(f1, i, self))
+                self.n.add(f1, text='Category ' + str(i))
+                
+
         
-        numClasses = self.numCasesW.get()
-        try:
-            numClasses = int(numClasses)
-        except:
-#            spinBoxError()
-            return
-        for i in range(numClasses):
-            
-            f1 = ttk.Frame(n)
-            self.classes.append(TestClass(f1, i))
-            n.add(f1, text='Category' + str(i))
-            
-        n.pack()
-
-#        self.scrollbar = Scrollbar(self.classFrames, orient = HORIZONTAL)
-#        self.scrollbar.grid(row = 1, columnspan = 1, sticky = W+E)
-
+        
 
 
 
         
 class TestClass:
-    def __init__(self, parent, i):     
-        self.own = parent
+    def __init__(self, frame, i, parent):     
+        self.own = frame
+        self.parent = parent
         self.own.grid(row = 0 , column = i)
         Label(self.own, text = "Category " + str(i)).pack()
 
@@ -162,28 +333,19 @@ class TestClass:
 
         self.numsFrame = Frame(self.own)
         self.numsFrame.pack()
-
-        self.timeout = Label(self.numsFrame, text = "Timeout in seconds: ")
-        self.timeoutW = Spinbox(self.numsFrame,from_=0.1, to =10)
-        self.timeout.grid(row=0,column = 0, sticky = W)
-        self.timeoutW.grid(row=0,column= 1) 
-        
-        self.index = Label(self.numsFrame, text = "Index of Comparison Function: ")
-        self.indexW = Spinbox(self.numsFrame,from_=0, to =10)        
-        self.index.grid(row=1,column = 0, sticky = W)
-        self.indexW.grid(row=1,column= 1)
         
         self.points = Label(self.numsFrame, text = "Points Per Test Case: ")
-        self.pointsW = Spinbox(self.numsFrame,from_=0, to =10)        
+        self.pointsVar = StringVar(self.parent.parent.root)
+        self.pointsW = Spinbox(self.numsFrame,from_=0, to =10, textvariable = self.pointsVar)        
         self.points.grid(row=2,column = 0, sticky = W)
         self.pointsW.grid(row=2,column= 1)
         
-        self.numCases = Label(self.numsFrame, text = "Number of Test Cases: ")
-        self.numCasesW = Spinbox(self.numsFrame,from_=0, to =10)        
-        self.numCases.grid(row=3,column = 0, sticky = W)
-        self.numCasesW.grid(row=3,column= 1)  
+#        self.numCases = Label(self.numsFrame, text = "Number of Test Cases: ")
+#        self.numCasesW = Spinbox(self.numsFrame,from_=0, to =10)        
+#        self.numCases.grid(row=3,column = 0, sticky = W)
+#        self.numCasesW.grid(row=3,column= 1)  
         
-        self.cases = Label(self.numsFrame, text = "Input Arguments: (each case should be on a separate line, and each argument should be separated by a vertical bar: | <shift+backslash>")
+        self.cases = Label(self.numsFrame, text = "Input Arguments: (each case should be on a separate line, and each argument should be space-separated)")
         self.casesW = Text(self.numsFrame, state=NORMAL, height = 15)        
         self.cases.grid(row=4,column = 0, sticky = W)
         self.casesW.grid(row=5,column= 0)        
@@ -197,19 +359,27 @@ class BottomFrame:
         nextButton.grid(row = 0,column = 2, padx = 5)
         
     def addQuestions(self):
+        
         f1 = ttk.Frame(self.parent.n)
-        MainFrame(self.parent, f1)
-        i = self.parent.numQ
+        NBOOKS.append(MainFrame(self.parent, f1))
+        self.parent.numQ = len(NBOOKS) 
+        i = self.parent.numQ-1
         self.parent.numQ+=1
         self.parent.n.add(f1, text='Question' + str(i))
         
     def generate(self):
         f = open("metadata.txt","w")
-#        try:
-        for Q in self.parent.questions:
+        for Q in NBOOKS:
+            print "here"
             Question = Q.qText.get()
             Function = Q.fText.get()
             NumClasses = len(Q.classes)
+            timeout = Q.timeoutW.get()
+            indexName = Q.tkvar.get() 
+            if indexName == "Float Comparison":
+                index = 1
+            else:
+                index = 0
             f.write(Question+"\n")
             f.write(Function+"\n")
             f1 = open(Question+".txt", "w")
@@ -218,15 +388,16 @@ class BottomFrame:
                 f1.write("#NEW CATEGORY STARTS \n")
                 fail = c.failText.get()
                 success = c.successText.get()
-                timeout = c.timeoutW.get()
-                index = c.indexW.get()
+
                 points = c.pointsW.get()
-                numCases = c.numCasesW.get()
-                cases = c.casesW.get('1.0',END)
+                cases = c.casesW.get('1.0',END).rstrip()
+                ###credits below:
+                numCases = str(len(cases.split("\n")))
+#                numCases = str(int((c.casesW.index('end-1c').split('.')[0])))
                 f1.write(fail+ " #this is the fail message \n")
                 f1.write(success+ " #this is sucess fail message \n")
                 f1.write(timeout+ " #this is the timeout \n")
-                f1.write(index+ " #this is the index \n")
+                f1.write(str(index)+ " #this is the index \n")
                 f1.write(points+ " #this is the points per case \n")
                 f1.write(numCases+ " #this is the number of cases \n")
                 f1.write(cases)
@@ -239,4 +410,12 @@ class BottomFrame:
                 
                 
                
-application = Welcome()
+Main()
+
+
+
+# =============================================================================
+# CREDITS:
+# https://stackoverflow.com/questions/4609382/getting-the-total-number-of-lines-in-a-tkinter-text-widget
+
+# =============================================================================

@@ -75,55 +75,78 @@ def ReadLine(f):
         line = f.readline()
     return line
 
+def customSplit(arg):
+    argList = []
+    x = arg
+    l = x.count(r'"')
+    l = l/2
+    for i in range(l):
+        start = x.index(r'"')
+        y = x[:start]
+        if y!="":
+            L = list(filter(lambda s: re.search("\s",s)==None 
+                            and re.search(".",s)!=None
+                            , re.split("\s",x[:start])))
+            argList.extend(L)
+        x = x[start+1:]
+        end = x.index(r'"')
+        argList.append(x[:end])
+        x = x[end+1:]
+    L = list(filter(lambda s: re.search("\s",s)==None 
+                    and re.search(".",s)!=None
+                    , re.split("\s",x)))
+    argList.extend(L)    
+    return argList
+    
 
 def runTest ( name, argList, timeout, compFunc,functionNum=0):
     #inpfile contains the input args for the test case
     #it writes it twice once for the ref and once for the test
-	inpfile = open("input.txt","w") 
-	for i in argList:
-		inpfile.write(str(i)+"\n")
-	for i in argList:
-		inpfile.write(str(i)+"\n")        
-	inpfile.close()
+    inpfile = open("input.txt","w") 
+    for i in argList:
+        inpfile.write(str(i)+"\n")
+    for i in argList:
+        inpfile.write(str(i)+"\n")        
+    inpfile.close()
     
-	#create a subprocess and run the function
-	#run executable with a timeout managed by SIGALRM
-	try:
-		proc_id = subprocess.Popen("python "+name+".py",
+    #create a subprocess and run the function
+    #run executable with a timeout managed by SIGALRM
+    try:
+        proc_id = subprocess.Popen("python "+name+".py",
                                    stderr=subprocess.PIPE,
                                    stdout=open("output.txt", "w"),
                                    stdin=open("input.txt","r"),
                                    shell=True)
-		t = threading.Timer ( timeout,  timeoutFunc, [proc_id] )
-		t.start ( )
-		proc_id.wait()
-		t.cancel ( )
-		output = proc_id.returncode;
+        t = threading.Timer ( timeout,  timeoutFunc, [proc_id] )
+        t.start ( )
+        proc_id.wait()
+        t.cancel ( )
+        output = proc_id.returncode;
         
     #timeout error
-	except Alarm:
-		output = STATUS_TIMEOUT()
-		proc_id.kill()
+    except Alarm:
+        output = STATUS_TIMEOUT()
+        proc_id.kill()
 
-	#the return value of the function should be in output.txt
-	out = open("output.txt","r")
-	lines = map(lambda s: s.strip(), out.readlines())
-	linesRef = lines[0:lines.index("|")+1] 
-	linesTest = lines[lines.index("|")+1:] 
-	lines = linesTest
-	out.close ()
+    #the return value of the function should be in output.txt
+    out = open("output.txt","r")
+    lines = map(lambda s: s.strip(), out.readlines())
+    linesRef = lines[0:lines.index("|")+1] 
+    linesTest = lines[lines.index("|")+1:] 
+    lines = linesTest
+    out.close ()
     
     #if the output was non-empty
-	if (len ( lines ) > 0):
-		#if there is a comp function then compare the output with the
+    if (len ( lines ) > 0):
+        #if there is a comp function then compare the output with the
         #reference output using comp, otherwise compare them using equality
-		if compFunc != None:
-			if compFunc ( str(lines[0]).rstrip('\n'), linesRef[0] ):
-				return 1
-		else:
-			if str(lines[0]).rstrip('\n') == linesRef[0]:
-				return 1
-	return 0
+        if compFunc != None:
+            if compFunc ( str(lines[0]).rstrip('\n'), linesRef[0] ):
+                return 1
+        else:
+            if str(lines[0]).rstrip('\n') == linesRef[0]:
+                return 1
+    return 0
 
 
 #categories is a list of instances of the test category class
@@ -175,10 +198,10 @@ def testAll():
             numCases = int(commentStrip(ReadLine(tests)))
             for c in range(numCases):
                 case = TestCase()
-                case.argList = commentStrip(ReadLine(tests)).split("|")
+                case.argList = customSplit((ReadLine(tests)))
+                print case.argList
                 cases.append(case)
             cat.testCases = cases
-            print cat
             categories.append(cat)
 
         print "Grading " + f
