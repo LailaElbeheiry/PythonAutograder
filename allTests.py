@@ -1,4 +1,3 @@
-######THIS PART IS FIXED#######
 import subprocess
 import os.path
 import struct
@@ -11,8 +10,7 @@ import threading
 import compFuncs
 
 
-
-
+## a class for test classes
 class TestClass():
     def __init__(self):
         self.name = None
@@ -21,11 +19,12 @@ class TestClass():
         self.timeout = None
         self.compFunc = None
         self.testCases = None
-#        self.total = None
         self.scorePerCase = None
-    #for debugging
+    #for debugging purposes
     def __str__(self):
-        s= "name:" + str(self.name) + "\nfail: " + str(self.fail) + "\nsuccess: " + str(self.success) + "\ntimeout: " + str(self.timeout) + "\ntestCases: " 
+        s= "name:" + str(self.name) + "\nfail: " + str(self.fail) 
+        + "\nsuccess: " + str(self.success) + "\ntimeout: " + str(self.timeout)
+        + "\ntestCases: " 
         t =""
         for tc in self.testCases:
             t+= "\n" + str(tc)
@@ -33,12 +32,12 @@ class TestClass():
         return s + t
                 
                 
-        
+##a class for individual test cases        
 class TestCase():
     def __init__(self):
         self.argList = None
         self.score = None
-#        self.refResult = None
+    #for debugging purposes
     def __str__(self):
         return "argList: " + str(self.argList) + "\nscore: " + str(self.score) 
 
@@ -151,7 +150,6 @@ def runTest ( name, argList, timeout, compFunc,functionNum=0):
 
 #categories is a list of instances of the test category class
 def runTestCases (categories):
-#        print c
     totalPts = 0
     for category in categories:
         name = category.name
@@ -199,7 +197,6 @@ def testAll():
             for c in range(numCases):
                 case = TestCase()
                 case.argList = customSplit((ReadLine(tests)))
-                print case.argList
                 cases.append(case)
             cat.testCases = cases
             categories.append(cat)
