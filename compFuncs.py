@@ -10,4 +10,3 @@ def CompFloats(a,b):
 COMPFUNCS = []
 COMPFUNCS.append(lambda x,y: x==y)
 COMPFUNCS.append(CompFloats)
-

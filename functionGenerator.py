@@ -7,7 +7,6 @@ class whichTriangle:
     def __init__(self):
         self.timeout = 2
         
-
     def refFuncWrapper(self):
         return self.refFunc( int(raw_input()), int(raw_input()), int(raw_input()) )
     
