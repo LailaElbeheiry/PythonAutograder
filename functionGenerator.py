@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 30 03:27:16 2019
 
-@author: LailaElbeheiry
-"""
 import math
 import lab1
 
