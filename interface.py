@@ -3,7 +3,6 @@ from PIL import Image, ImageTk
 import ttk
 import tkMessageBox as messagebox
 import re
-import CustomNotebook as nt
 
 import pickle
 
@@ -370,7 +369,6 @@ class BottomFrame:
     def generate(self):
         f = open("metadata.txt","w")
         for Q in NBOOKS:
-            print "here"
             Question = Q.qText.get()
             Function = Q.fText.get()
             NumClasses = len(Q.classes)
