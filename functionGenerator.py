@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Tue Apr 23 05:32:18 2019
+
+@author: LailaElbeheiry
+"""
+
+# -*- coding: utf-8 -*-
 
 import math
 import lab1
 
+#############This file
+
 class whichTriangle:
     def __init__(self):
-        self.timeout = 2
+        pass
         
-
     def refFuncWrapper(self):
         return self.refFunc( int(raw_input()), int(raw_input()), int(raw_input()) )
     
@@ -35,7 +43,7 @@ class whichTriangle:
     
 class isFloat:
     def __init__(self):
-        self.timeout = 2
+        pass
   
     def refFuncWrapper(self):
         return self.refFunc( raw_input() )
