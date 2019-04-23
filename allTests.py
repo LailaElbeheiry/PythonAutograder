@@ -1,16 +1,22 @@
+##This file runs the autograders on all the functions in the file lab1
+##REQUIREMENTS:
+#######This program assumes that the user has already run interface.py and
+##########generated the corresponding test files.
+#######The file which has the solutions (i.e. being graded) should be named
+##########"lab1.py"
+#######Modify and run the file function_generator.py before running this file
+
 import subprocess
 import os.path
 import struct
 import signal
 import json
 import re
-import random
-import math
 import threading
 import compFuncs
 
 
-## a class for test classes
+
 class TestClass():
     def __init__(self):
         self.name = None
@@ -44,7 +50,6 @@ class TestCase():
 
 
 
-######THIS PART CHANGES AS PER THE NAME OF THE PROBLEM FILES#######
 meta = open("metadata.txt")
 QUESTIONS = []
 lines = meta.readlines()
@@ -61,7 +66,7 @@ def timeoutFunc ( p ):
                         print "timed out"
                 except:
                         pass
-###CITATION NEEDED        
+###CITATION: https://stackoverflow.com/questions/28401547/how-to-remove-comments-from-a-string        
 def commentStrip(s):
     m = re.match(r'^([^#]*)#(.*)$', s)
     if m:  # The line contains a hash / comment
