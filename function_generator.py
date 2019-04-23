@@ -7,23 +7,23 @@
 import math
 import lab1
 
-#############This file should be editted to generate the autograding files
-###In line 31, insert the function names in the list "names"
+"""
+This file should be editted to generate the autograding files
+In line 31, insert the function names in the list "names"
 
-###In line 33, insert the name of the first function
+In line 33, insert the name of the first function
 
-###In lines 38 and 44, edit the function refFunWrapper, so that it correctly  
-#casts the input to the actual input types
+In lines 38 and 44, edit the function refFunWrapper, so that it correctly  
+casts the input to the actual input types
 
-###In line 41, edit the refFun so that it has the body for the reference function 
-#for that particular class
+In line 41, edit the refFun so that it has the body for the reference function 
+for that particular class
 
-###Run this file to generate the autograders for each function
+Run this file to generate the autograders for each function
 
-####Check the file template_generator.py for reference
+Check the file template_generator.py for reference
+"""
 
-
-###
 
 
 #####################################################################################

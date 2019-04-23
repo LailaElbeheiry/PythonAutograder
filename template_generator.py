@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue Apr 23 07:10:04 2019
+This is a template for function_generator.py
+running this file would generate two python files:
+whichTriangle.py and isFloat.py
+and each of them will be importing the corresponding class from this file
+"""" 
 
-@author: LailaElbeheiry
-"""
 
 # -*- coding: utf-8 -*-
 """

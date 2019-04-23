@@ -1,10 +1,13 @@
-##This file runs the autograders on all the functions in the file lab1
-##REQUIREMENTS:
-#######This program assumes that the user has already run interface.py and
-##########generated the corresponding test files.
-#######The file which has the solutions (i.e. being graded) should be named
-##########"lab1.py"
-#######Modify and run the file function_generator.py before running this file
+"""
+This file runs the autograders on all the functions in the file lab1
+REQUIREMENTS:
+This program assumes that the user has already run interface.py and
+generated the corresponding test files.
+The file which has the solutions (i.e. being graded) should be named
+"lab1.py"
+Modify and run the file function_generator.py before running this file
+"""
+
 
 import subprocess
 import os.path
