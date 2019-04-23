@@ -1,3 +1,7 @@
+##########Run this file to generate the text files needed for autograding a 
+##########python assignment.
+
+
 from Tkinter import*
 from PIL import Image, ImageTk
 import ttk
@@ -339,11 +343,6 @@ class TestClass:
         self.points.grid(row=2,column = 0, sticky = W)
         self.pointsW.grid(row=2,column= 1)
         
-#        self.numCases = Label(self.numsFrame, text = "Number of Test Cases: ")
-#        self.numCasesW = Spinbox(self.numsFrame,from_=0, to =10)        
-#        self.numCases.grid(row=3,column = 0, sticky = W)
-#        self.numCasesW.grid(row=3,column= 1)  
-        
         self.cases = Label(self.numsFrame, text = "Input Arguments: (each case should be on a separate line, and each argument should be space-separated)")
         self.casesW = Text(self.numsFrame, state=NORMAL, height = 15)        
         self.cases.grid(row=4,column = 0, sticky = W)
@@ -368,6 +367,7 @@ class BottomFrame:
         
     def generate(self):
         f = open("metadata.txt","w")
+        f = open("function_genertor.py")
         for Q in NBOOKS:
             Question = Q.qText.get()
             Function = Q.fText.get()
@@ -391,7 +391,6 @@ class BottomFrame:
                 cases = c.casesW.get('1.0',END).rstrip()
                 ###credits below:
                 numCases = str(len(cases.split("\n")))
-#                numCases = str(int((c.casesW.index('end-1c').split('.')[0])))
                 f1.write(fail+ " #this is the fail message \n")
                 f1.write(success+ " #this is sucess fail message \n")
                 f1.write(timeout+ " #this is the timeout \n")
@@ -399,10 +398,7 @@ class BottomFrame:
                 f1.write(points+ " #this is the points per case \n")
                 f1.write(numCases+ " #this is the number of cases \n")
                 f1.write(cases)
-                
-#        except:
-#            print "error"
-#            return
+
                              
                             
                 
