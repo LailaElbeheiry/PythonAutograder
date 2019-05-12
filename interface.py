@@ -1,21 +1,28 @@
-##########Run this file to generate the text files needed for autograding a 
-##########python assignment.
-
+"""
+Run this file to generate the text files needed for autograding a 
+python assignment.
+"""
 
 from Tkinter import*
-from PIL import Image, ImageTk
 import ttk
 import tkMessageBox as messagebox
-import re
 
 import pickle
+import pyro
 
 FILENAME = "state.pkl"
 
 
 NBOOKS = []
 NBOOKS2 = []
+with open("function_class.py", "r") as f:
+    
+    FUNCTEMPLATE = f.readlines()
+    f.close()
 
+'''THIS CLASS IS COPIED AND EDITTED FROM 
+https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close
+buttons-to-tabs-in-tkinter-ttk-notebook '''
 class Notebook(ttk.Notebook):
     """A ttk Notebook with close buttons on each tab"""
 
@@ -127,7 +134,6 @@ class Main:
         self.numQ = 1
         self.restored = False
 
-
         self.root= Tk()
         self.root.wm_protocol("WM_DELETE_WINDOW", self.save_state)
         self.root.geometry('1000x600')
@@ -170,6 +176,7 @@ class Main:
                     f2.numCasesvar.set(state[i]["NumClasses"])
                     f2.timeoutVar.set(state[i]["timeout"])
                     f2.tkvar.set(state[i]["indexName"])
+                    f2.refFunctionBody = state[i]["refFunc"]
                     f2.generateClasses(True, state[i]["classes"])
                         
                     self.nbooks.append(f2)
@@ -197,6 +204,7 @@ class Main:
                     d["NumClasses"] = len(Q.classes)
                     d["timeout"] = Q.timeoutW.get()
                     d["indexName"] = Q.tkvar.get() 
+                    d["refFunc"] = Q.refFunctionBody
                     classes = dict()
                     for c in Q.classes:
                         classes["fail"] = c.failText.get()
@@ -227,6 +235,7 @@ class MainFrame:
         
         self.stringsFrame = Frame(cnv)        
         self.stringsFrame.pack()
+        self.refFunctionBody = None
 
         self.qName = Label(self.stringsFrame, text = "Quesion Name: ")
         self.fName = Label(self.stringsFrame, text = "Function Name: ")
@@ -257,11 +266,31 @@ class MainFrame:
         self.index = Label(self.stringsFrame, text = "Comparison Function: ")
         self.indexW = OptionMenu(self.stringsFrame, self.tkvar, 'Integer Comparison','Float Comparison','String Comparison')        
         self.index.grid(row=1,column = 3, sticky = W)
-        self.indexW.grid(row=1,column= 4)        
-       
+        self.indexW.grid(row=1,column= 4)   
+
+        self.referenceF = Button(self.stringsFrame, text = "Reference Function", command = self.addRef)
+        self.referenceF.grid(row = 1, column = 6)
 
         self.classFrames = Frame(cnv)
         self.classFrames.pack()
+        
+        
+    def addRef(self):
+        self.func = self.fText.get()
+        if self.func =="":
+            messagebox.showerror("Function Name", "Function name cannot be empty")
+        elif re.search("\s", self.func):
+            messagebox.showerror("Function Name", "Function name cannot have whitespace")
+            
+        else:
+            f = open("function_class.py", "w")
+            FUNCTEMPLATE[0] = "class " + self.func+":\n"
+            FUNCTEMPLATE[25] = "        return lab1."+ self.func +"( int(raw_input()) )\n"
+            f.writelines(FUNCTEMPLATE)
+            f.close()
+            self.ui_core = pyro.CoreUI(parent = self)    
+            self.ui_core.mainloop()
+#        pyro.run()
 
 
     def generateClasses(self, regenerate = False, classes = None):
@@ -316,7 +345,7 @@ class MainFrame:
 
         
 class TestClass:
-    def __init__(self, frame, i, parent):     
+    def __init__(self, frame, i, parent):  
         self.own = frame
         self.parent = parent
         self.own.grid(row = 0 , column = i)
@@ -351,6 +380,8 @@ class TestClass:
 class BottomFrame:
     def __init__(self,parent,cnv):
         self.parent = parent
+        iButton = Button(cnv,text = "Instructions")
+        iButton.grid(row=0,column=0,padx=5)
         qButton = Button(cnv, text = "Add Questions", command = self.addQuestions)
         qButton.grid(row = 0, column = 1, padx=5)
         nextButton= Button(cnv,text= "Generate", command = self.generate)
@@ -367,10 +398,16 @@ class BottomFrame:
         
     def generate(self):
         f = open("metadata.txt","w")
-        f = open("function_genertor.py")
+        functions = []
+        names = []
         for Q in NBOOKS:
+            if Q.refFunctionBody is None:
+                messagebox.showerror("Error", "Please add reference function!")
+                break
             Question = Q.qText.get()
             Function = Q.fText.get()
+            names.append(Function)
+            functions.append(Q.refFunctionBody)
             NumClasses = len(Q.classes)
             timeout = Q.timeoutW.get()
             indexName = Q.tkvar.get() 
@@ -398,7 +435,22 @@ class BottomFrame:
                 f1.write(points+ " #this is the points per case \n")
                 f1.write(numCases+ " #this is the number of cases \n")
                 f1.write(cases)
+                
+                
+        f2 = open("function_generator.py","w")
+        for funct in functions:
+            f2.write(funct)
+            
+        src = open("source.py")
+        srcLines = list(map(lambda x: x.rstrip('\0'), src.readlines()))
+        for name in names:
+            g = open(name + ".py", 'w')
+            srcLines[1] = "from function_generator import " + name + " as s"
+            g.writelines(srcLines)
+            g.close()   
 
+            
+               
                              
                             
                 
@@ -411,5 +463,5 @@ Main()
 # =============================================================================
 # CREDITS:
 # https://stackoverflow.com/questions/4609382/getting-the-total-number-of-lines-in-a-tkinter-text-widget
-
+# https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close-buttons-to-tabs-in-tkinter-ttk-notebook
 # =============================================================================
