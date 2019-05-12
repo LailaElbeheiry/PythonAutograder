@@ -2,7 +2,7 @@
 
 Python Autograder is a Python tool for generating tests and autograding python labs.
 
-## Dependencies:
+## Dependencies
 
 * code
 * re
