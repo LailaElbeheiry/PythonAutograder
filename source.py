@@ -1,5 +1,5 @@
 
-from functionGenerator import SetDigit as s
+from function_generator import SetDigit as s
 
 f = s()
 
