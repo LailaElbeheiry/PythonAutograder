@@ -1,4 +1,4 @@
-"""
+    """
 This file runs the autograders on all the functions in the file lab1
 REQUIREMENTS:
 This program assumes that the user has already run interface.py and
@@ -215,7 +215,7 @@ def testAll():
         result[f] = res
         total += res
     
-    print json.dumps({'scores': result,'scoreboard': [total,total]})
+    print json.dumps({'scores': result,'scoreboard': total})
     
 testAll()
         
