@@ -1,10 +1,8 @@
 # Python Autograder
-=======
 
 Python Autograder is a Python tool for generating tests and autograding python labs.
 
 ## Dependencies:
-=======
 
 * code
 * re
@@ -13,19 +11,16 @@ Python Autograder is a Python tool for generating tests and autograding python l
 * tkMessageBox
 
 ## Installing
-=======
 
 To install the tool just clone or download this github repository.
 
 ## Running the tests
-=======
 
 * In the same directory, copy the python script to be graded and name it "lab1.py"
 * Run interface.py and add your test cases, and reference functions
 * Run allTests.py
 
 ## Example
-=======
 
  The following is an example for a reference function with a helper function.
  
