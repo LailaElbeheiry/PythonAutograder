@@ -1,4 +1,4 @@
-class anything:
+class isFloat:
     '''add your imports here
     if there are no imports, uncomment pass'''
     def __init__(self):
@@ -8,7 +8,7 @@ class anything:
     
     '''this function is a wrapper around the reference function. Add input parameters 
     and cast them to their types. You can add helper functions as part of the class. 
-    Check example below. DONOT CHANGE THE NAME OF THE FUNCTION'''
+    Check example in github. DONOT CHANGE THE NAME OF THE FUNCTION'''
     def refFuncWrapper(self):
         return self.refFunc( int(raw_input()) ) #add more parameters here
  
@@ -23,6 +23,6 @@ class anything:
     THE INPUT PARAMETERS'''
     def inputFunc(self):
         import lab1
-        return lab1.anything( int(raw_input()) )
+        return lab1.isFloat( int(raw_input()) )
 
        
