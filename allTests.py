@@ -5,7 +5,6 @@ This program assumes that the user has already run interface.py and
 generated the corresponding test files.
 The file which has the solutions (i.e. being graded) should be named
 "lab1.py"
-Modify and run the file function_generator.py before running this file
 """
 
 
